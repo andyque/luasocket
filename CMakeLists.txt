@@ -12,10 +12,43 @@ endif()
 find_package(Lua51 REQUIRED)
 include_directories(${LUA_INCLUDE_DIR})
 
-set(GLOB_RECURSE luasocket_sources "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c")
-set(GLOB_RECURSE luasocket_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h")
+# Add lib sources.
+set(lib_src
+    "src/luasocket.c"
+    "src/timeout.c"
+    "src/buffer.c"
+    "src/io.c"
+    "src/auxiliar.c"
+    "src/options.c"
+    "src/inet.c"
+    "src/except.c"
+    "src/select.c"
+    "src/tcp.c"
+    "src/udp.c"
+    "src/mime.c"
+    "src/luasocket_scripts.c"
+)
 
-add_library(libluasocket STATIC ${luasocket_sources})
+if(UNIX) # mac, ios, linux, android
+  list(APPEND lib_src
+    "src/serial.c"
+    "src/unix.c"
+    "src/usocket.c"
+    )
+elseif(WIN32)
+  list(APPEND lib_src
+    "src/wsocket.c"
+    )
+else()
+  message(FATAL_ERROR
+    "${CMAKE_CURRENT_LIST_FILE} build on unsupported system ${CMAKE_SYSTEM_NAME}."
+    )
+endif()
+    
+file(GLOB_RECURSE luasocket_headers "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h")
+
+
+add_library(libluasocket STATIC ${lib_src})
 set_target_properties(libluasocket PROPERTIES PREFIX "")
 INSTALL(
   TARGETS libluasocket
